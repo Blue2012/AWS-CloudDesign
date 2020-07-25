@@ -1,4 +1,4 @@
-## CDNとS3とAPIGatewayを組み合わせて、会員制のメール登録フォーム作成
+## CDNとS3とAPIGatewayを組み合わせて、会員制のメール登録フォーム作成　（APIGateway + Lambda作成）
 
 下のページを参考にして作成してみた。
 https://hacknote.jp/archives/40978/

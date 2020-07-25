@@ -5,7 +5,7 @@ https://hacknote.jp/archives/40978/
 
 上記、ページの案内に沿って、作ってみる。
 
-## １．Lambda関数の作成
+## １．メール送信用のLambda関数作成
 ### １－１．テンプレートの選択
 
 以下のような感じで、まずはカスタムロールを用意する
@@ -34,7 +34,7 @@ https://hacknote.jp/archives/40978/
 
 ![image](https://user-images.githubusercontent.com/18514297/88449278-8c1bf680-ce80-11ea-91e6-360a47389c4a.png)
 
-### １－３．SNS送信連携
+### １－３．SNS送信連携用Lambda関数作成
 
 上記までで、5分間おきにLambda関数が実行できる設定を有効化できたため、次はSNSで通知を行う仕組みを実装します。
 まずはSNSでこの仕組みのために専用のSNSトピックを用意します。
@@ -73,17 +73,17 @@ https://hacknote.jp/archives/40978/
 import boto3
 
 sns = boto3.client('sns')
-TOPIC_ARN = 'arn:aws:sns:*******:MailSendTopic'
-msg = 'massage test hacknote'
-subject = 'title test hacknote'
+TOPIC_ARN = u'arn:aws:sns:ap-northeast-1:483799857078:MailSendTopic'
+msg = u'message test hacknote'
+subject = u'title test hacknote'
 
-def lambda_handler(event, handler):
-    request={
-        'TOPIC_ARN': TOPIC_ARN,
-        'Meaage': msg,
-        'Subject': subject
+def lambda_handler(event, context):
+    request = {
+    'TopicArn': TOPIC_ARN,
+    'Message': msg,
+    'Subject': subject
     }
-    response = sns.client(**request)
+    response = sns.publish(**request)
     return 'Successfully mail processed records'
 ```
 
@@ -91,3 +91,30 @@ def lambda_handler(event, handler):
 ひとまずは凝った作りをせずに↓のような内容で作成しておきます。
 
 ![image](https://user-images.githubusercontent.com/18514297/88449747-52e58580-ce84-11ea-8c5a-11fa99cd1203.png)
+
+このテストを実行してみます。
+たしかに、以下の通り、成功しました。
+
+![image](https://user-images.githubusercontent.com/18514297/88449874-870d7600-ce85-11ea-8b48-91fe45600378.png)
+
+いちおう、番外編となりますが、トピックを作成しても、それに紐づく、サブスクリプションが無いと
+通知先が存在しない状態となりますので、そちらも用意する方法を記載しておこうと思います。
+※ただし、5分間隔で通知が来てはたまったもんではないので、やり方を記載しておくまでに留めておきます。
+
+![image](https://user-images.githubusercontent.com/18514297/88449960-203c8c80-ce86-11ea-8055-17229cfad312.png)
+![image](https://user-images.githubusercontent.com/18514297/88450016-8f19e580-ce86-11ea-83e9-99b53afafe86.png)
+
+上記を設定すると指定したアドレス宛てにメール送信が行われるようになります。
+
+## ２．APIGatewayの用意
+### ２－１．API発行
+
+今回はRestAPIを作成していきます。
+いまは、APIと一口でいっても色々なタイプのものが出てきていますからね。
+
+![image](https://user-images.githubusercontent.com/18514297/88450072-3139cd80-ce87-11ea-975a-e4cffc178eae.png)
+
+用意するものについては特にカスタマイズしないので、名前だけ変えます。
+今回、CloudFrontと連携を行うものの、ここでは直接、CloudFrontとの連携を行う訳ではないため、リージョンを選択します。
+
+![image](https://user-images.githubusercontent.com/18514297/88450086-5af2f480-ce87-11ea-88ad-8569620056be.png)
